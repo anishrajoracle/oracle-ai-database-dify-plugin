@@ -1,0 +1,40 @@
+identity:
+  name: read_only_sql
+  author: anishrajoracle
+  label:
+    en_US: Read-only SQL
+description:
+  human:
+    en_US: Execute a validated read-only Oracle SQL query.
+  llm: Execute a SELECT or WITH query against Oracle AI Database and return rows as JSON.
+parameters:
+  - name: sql
+    type: string
+    required: true
+    form: llm
+    label:
+      en_US: SQL
+    human_description:
+      en_US: Read-only SELECT or WITH SQL statement.
+    llm_description: Read-only Oracle SQL. DML, DDL, PL/SQL, and multiple statements are rejected.
+  - name: bind_parameters
+    type: string
+    required: false
+    form: llm
+    label:
+      en_US: Bind Parameters JSON
+    human_description:
+      en_US: Optional JSON object for named bind parameters.
+    llm_description: 'JSON object of bind values, for example {"department_id": 10}.'
+  - name: max_rows
+    type: number
+    required: false
+    form: form
+    default: 100
+    min: 1
+    max: 1000
+    label:
+      en_US: Max Rows
+extra:
+  python:
+    source: tools/read_only_sql.py

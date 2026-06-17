@@ -3,6 +3,28 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Local plugin/runtime artifacts
+.DS_Store
+.env
+.env.*
+!.env.example
+*.log
+*.difypkg
+.dify_plugin/
+.dify/
+
+# Oracle local secrets and wallets
+wallet/
+Wallet_*/
+*.sso
+*.p12
+*.jks
+*.pem
+*.key
+tnsnames.ora
+sqlnet.ora
+ewallet.pem
+
 # C extensions
 *.so
 

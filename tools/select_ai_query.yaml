@@ -1,0 +1,45 @@
+identity:
+  name: select_ai_query
+  author: anishrajoracle
+  label:
+    en_US: Select AI Query
+description:
+  human:
+    en_US: Send a prompt to Oracle Select AI through DBMS_CLOUD_AI.
+  llm: Call Oracle DBMS_CLOUD_AI.GENERATE with a configured Select AI profile.
+parameters:
+  - name: prompt
+    type: string
+    required: true
+    form: llm
+    label:
+      en_US: Prompt
+  - name: profile_name
+    type: string
+    required: true
+    form: form
+    label:
+      en_US: Select AI Profile
+  - name: action
+    type: select
+    required: false
+    form: form
+    default: chat
+    label:
+      en_US: Action
+    options:
+      - value: chat
+        label:
+          en_US: Chat
+      - value: narrate
+        label:
+          en_US: Narrate
+      - value: showsql
+        label:
+          en_US: Show SQL
+      - value: explainsql
+        label:
+          en_US: Explain SQL
+extra:
+  python:
+    source: tools/select_ai_query.py

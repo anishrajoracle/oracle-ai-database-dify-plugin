@@ -1,0 +1,74 @@
+identity:
+  author: anishrajoracle
+  name: oracle
+  label:
+    en_US: Oracle AI Database
+  description:
+    en_US: Tool provider for Oracle AI Database SQL, Select AI, and knowledge search.
+  icon: ../_assets/icon.svg
+credentials_for_provider:
+  user:
+    type: text-input
+    required: true
+    label:
+      en_US: User
+    placeholder:
+      en_US: app_user
+  password:
+    type: secret-input
+    required: true
+    label:
+      en_US: Password
+  dsn:
+    type: text-input
+    required: false
+    label:
+      en_US: DSN
+    placeholder:
+      en_US: dbhost.example.com:1521/FREEPDB1
+    help:
+      en_US: Use this when you already have a complete Oracle DSN. If omitted, host, port, and service name are used.
+  host:
+    type: text-input
+    required: false
+    label:
+      en_US: Host
+    placeholder:
+      en_US: localhost
+  port:
+    type: text-input
+    required: false
+    label:
+      en_US: Port
+    placeholder:
+      en_US: "1521"
+  service_name:
+    type: text-input
+    required: false
+    label:
+      en_US: Service Name
+    placeholder:
+      en_US: FREEPDB1
+  config_dir:
+    type: text-input
+    required: false
+    label:
+      en_US: Wallet Config Directory
+  wallet_location:
+    type: text-input
+    required: false
+    label:
+      en_US: Wallet Location
+  wallet_password:
+    type: secret-input
+    required: false
+    label:
+      en_US: Wallet Password
+tools:
+  - tools/read_only_sql.yaml
+  - tools/select_ai_query.yaml
+  - tools/nl2sql_query.yaml
+  - tools/external_knowledge_search.yaml
+extra:
+  python:
+    source: provider/oracle.py

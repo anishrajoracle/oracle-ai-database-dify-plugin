@@ -22,10 +22,15 @@ def test_provider_and_tool_yaml_sources_exist():
     provider = yaml.safe_load((ROOT / "provider/oracle.yaml").read_text())
 
     assert provider["extra"]["python"]["source"] == "provider/oracle.py"
+    assert provider["tools"] == [
+        "tools/read_only_sql.yaml",
+        "tools/external_knowledge_search.yaml",
+        "tools/external_vector_search.yaml",
+        "tools/hybrid_knowledge_search.yaml",
+    ]
     for tool_path in provider["tools"]:
         tool_yaml = ROOT / tool_path
         assert tool_yaml.exists(), tool_path
         tool_config = yaml.safe_load(tool_yaml.read_text())
         source = ROOT / tool_config["extra"]["python"]["source"]
         assert source.exists(), source
-

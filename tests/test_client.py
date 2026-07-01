@@ -91,24 +91,3 @@ def test_execute_read_only_uses_binds_and_serializes_rows():
     }
     assert cursor.closed
     assert connection.closed
-
-
-def test_select_ai_uses_bind_parameters():
-    cursor = FakeCursor(one=("select * from employees",))
-    connection = FakeConnection(cursor)
-    client = OracleDatabaseClient.from_credentials(
-        {"user": "app", "password": "secret", "dsn": "db/pdb"},
-        connect=lambda **_kwargs: connection,
-    )
-
-    response = client.select_ai(prompt="show employees", profile_name="AI_PROFILE", action="showsql")
-
-    sql, binds = cursor.executed[0]
-    assert "DBMS_CLOUD_AI.GENERATE" in sql
-    assert binds == {
-        "prompt": "show employees",
-        "profile_name": "AI_PROFILE",
-        "action": "showsql",
-    }
-    assert response == "select * from employees"
-

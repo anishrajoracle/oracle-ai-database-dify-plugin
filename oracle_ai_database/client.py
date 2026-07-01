@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import array
 import datetime as dt
 import decimal
 from dataclasses import dataclass
@@ -33,6 +34,10 @@ def _default_connect(**kwargs: Any) -> Any:
     import oracledb
 
     return oracledb.connect(**kwargs)
+
+
+def to_vector(values: list[float]) -> array.array:
+    return array.array("f", values)
 
 
 def serialize_value(value: Any) -> Any:
@@ -114,33 +119,38 @@ class OracleDatabaseClient:
             if close:
                 close()
 
-    def select_ai(self, *, prompt: str, profile_name: str, action: str) -> str:
-        sql = (
-            "SELECT DBMS_CLOUD_AI.GENERATE("
-            "prompt => :prompt, profile_name => :profile_name, action => :action"
-            ") AS response FROM dual"
+    def execute_vector_search(
+        self,
+        sql: str | SafeSql,
+        *,
+        query_vector: list[float],
+        max_rows: int,
+    ) -> QueryResult:
+        safe_sql = sql if isinstance(sql, SafeSql) else validate_read_only_sql(sql)
+        return self.execute_read_only(
+            safe_sql,
+            binds={"query_vector": to_vector(query_vector)},
+            max_rows=max_rows,
         )
-        connection = self._open_connection()
-        try:
-            cursor = connection.cursor()
-            try:
-                cursor.execute(
-                    sql,
-                    {
-                        "prompt": prompt,
-                        "profile_name": profile_name,
-                        "action": action,
-                    },
-                )
-                row = cursor.fetchone()
-                if not row:
-                    return ""
-                return str(serialize_value(row[0]) or "")
-            finally:
-                close = getattr(cursor, "close", None)
-                if close:
-                    close()
-        finally:
-            close = getattr(connection, "close", None)
-            if close:
-                close()
+
+    def execute_hybrid_search(
+        self,
+        sql: str | SafeSql,
+        *,
+        query: str,
+        query_vector: list[float],
+        vector_weight: float,
+        text_weight: float,
+        max_rows: int,
+    ) -> QueryResult:
+        safe_sql = sql if isinstance(sql, SafeSql) else validate_read_only_sql(sql)
+        return self.execute_read_only(
+            safe_sql,
+            binds={
+                "query": query,
+                "query_vector": to_vector(query_vector),
+                "vector_weight": vector_weight,
+                "text_weight": text_weight,
+            },
+            max_rows=max_rows,
+        )

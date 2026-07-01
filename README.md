@@ -2,12 +2,12 @@
 
 Standalone Dify Tool plugin for Oracle AI Database.
 
-## v0 tools
+## Tools
 
 - `read_only_sql`: run validated read-only SQL and return rows as JSON.
-- `select_ai_query`: call Oracle Select AI through `DBMS_CLOUD_AI.GENERATE`.
-- `nl2sql_query`: generate SQL with Select AI and optionally execute it after read-only validation.
 - `external_knowledge_search`: search an Oracle table through Oracle Text or a safe `LIKE` fallback.
+- `external_vector_search`: find semantically similar rows with Oracle vector distance.
+- `hybrid_knowledge_search`: combine Oracle Text and vector similarity scores.
 
 ## Local validation
 

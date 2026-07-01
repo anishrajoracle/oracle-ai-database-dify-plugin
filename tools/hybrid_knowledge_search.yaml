@@ -1,0 +1,125 @@
+identity:
+  name: hybrid_knowledge_search
+  author: anishrajoracle
+  label:
+    en_US: Hybrid Knowledge Search
+description:
+  human:
+    en_US: Search existing Oracle rows by combining Oracle Text relevance and VECTOR cosine similarity.
+  llm: Search a configured Oracle table with both a text query and query embedding, then rank rows by weighted hybrid score.
+parameters:
+  - name: query
+    type: string
+    required: true
+    form: llm
+    label:
+      en_US: Query
+    human_description:
+      en_US: Natural-language search query for Oracle Text or LIKE matching.
+    llm_description: Natural-language search query to match against the configured text column.
+  - name: query_vector
+    type: string
+    required: true
+    form: llm
+    label:
+      en_US: Query Vector JSON
+    human_description:
+      en_US: JSON array of numeric embedding values to search with.
+    llm_description: JSON array of numeric embedding values, for example [0.1, 0.2, 0.3].
+  - name: table_name
+    type: string
+    required: true
+    form: form
+    label:
+      en_US: Table Name
+    human_description:
+      en_US: Oracle table containing both text and VECTOR columns.
+  - name: text_column
+    type: string
+    required: false
+    form: form
+    default: text
+    label:
+      en_US: Text Column
+    human_description:
+      en_US: Text column used for Oracle Text or LIKE matching.
+  - name: vector_column
+    type: string
+    required: false
+    form: form
+    default: embedding
+    label:
+      en_US: Vector Column
+    human_description:
+      en_US: VECTOR column used for semantic similarity.
+  - name: content_column
+    type: string
+    required: false
+    form: form
+    default: text
+    label:
+      en_US: Content Column
+    human_description:
+      en_US: Text/content column to return with each result.
+  - name: id_column
+    type: string
+    required: false
+    form: form
+    default: id
+    label:
+      en_US: ID Column
+    human_description:
+      en_US: Identifier column to return with each result.
+  - name: metadata_columns
+    type: string
+    required: false
+    form: form
+    label:
+      en_US: Metadata Columns
+    human_description:
+      en_US: Optional comma-separated column names to return.
+  - name: use_oracle_text
+    type: boolean
+    required: false
+    form: form
+    default: true
+    label:
+      en_US: Use Oracle Text
+    human_description:
+      en_US: Use Oracle Text CONTAINS for text relevance, otherwise use a LIKE fallback.
+  - name: vector_weight
+    type: number
+    required: false
+    form: form
+    default: 0.7
+    min: 0
+    max: 1
+    label:
+      en_US: Vector Weight
+    human_description:
+      en_US: Weight applied to VECTOR cosine similarity.
+  - name: text_weight
+    type: number
+    required: false
+    form: form
+    default: 0.3
+    min: 0
+    max: 1
+    label:
+      en_US: Text Weight
+    human_description:
+      en_US: Weight applied to Oracle Text or LIKE relevance.
+  - name: max_rows
+    type: number
+    required: false
+    form: form
+    default: 10
+    min: 1
+    max: 100
+    label:
+      en_US: Max Rows
+    human_description:
+      en_US: Maximum number of hybrid matches to return.
+extra:
+  python:
+    source: tools/hybrid_knowledge_search.py

@@ -1,4 +1,4 @@
-version: 0.0.1
+version: 0.0.4
 type: plugin
 author: anishrajoracle
 name: oracle_ai_database
@@ -6,7 +6,7 @@ label:
   en_US: Oracle AI Database
 description:
   en_US: Workflow and agent tools for Oracle AI Database.
-icon: _assets/icon.svg
+icon: icon.svg
 resource:
   memory: 268435456
   permission: {}
@@ -14,7 +14,7 @@ plugins:
   tools:
     - provider/oracle.yaml
 meta:
-  version: 0.0.1
+  version: 0.0.4
   arch:
     - amd64
     - arm64

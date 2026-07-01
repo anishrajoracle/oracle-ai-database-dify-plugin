@@ -1,22 +1,22 @@
 identity:
-  name: external_knowledge_search
+  name: external_vector_search
   author: anishrajoracle
   label:
-    en_US: External Knowledge Search
+    en_US: External Vector Search
 description:
   human:
-    en_US: Search text content stored in an Oracle AI Database table.
-  llm: Search a configured table using Oracle Text CONTAINS or a LIKE fallback and return matching rows.
+    en_US: Search existing Oracle VECTOR rows using cosine vector similarity.
+  llm: Search a configured Oracle table with VECTOR_DISTANCE over a VECTOR column and return nearest rows.
 parameters:
-  - name: query
+  - name: query_vector
     type: string
     required: true
     form: llm
     label:
-      en_US: Query
+      en_US: Query Vector JSON
     human_description:
-      en_US: Search query for text stored in Oracle.
-    llm_description: Search query for text stored in Oracle.
+      en_US: JSON array of numeric embedding values to search with.
+    llm_description: JSON array of numeric embedding values, for example [0.1, 0.2, 0.3].
   - name: table_name
     type: string
     required: true
@@ -24,16 +24,25 @@ parameters:
     label:
       en_US: Table Name
     human_description:
-      en_US: Oracle table to search.
-  - name: text_column
+      en_US: Oracle table containing existing VECTOR rows.
+  - name: vector_column
+    type: string
+    required: false
+    form: form
+    default: embedding
+    label:
+      en_US: Vector Column
+    human_description:
+      en_US: VECTOR column used for similarity search.
+  - name: content_column
     type: string
     required: false
     form: form
     default: text
     label:
-      en_US: Text Column
+      en_US: Content Column
     human_description:
-      en_US: Text column to search.
+      en_US: Text/content column to return with each vector match.
   - name: id_column
     type: string
     required: false
@@ -51,15 +60,6 @@ parameters:
       en_US: Metadata Columns
     human_description:
       en_US: Optional comma-separated column names to return.
-  - name: use_oracle_text
-    type: boolean
-    required: false
-    form: form
-    default: true
-    label:
-      en_US: Use Oracle Text
-    human_description:
-      en_US: Use Oracle Text CONTAINS when enabled, otherwise use a LIKE fallback.
   - name: max_rows
     type: number
     required: false
@@ -70,7 +70,7 @@ parameters:
     label:
       en_US: Max Rows
     human_description:
-      en_US: Maximum number of search rows to return.
+      en_US: Maximum number of vector matches to return.
 extra:
   python:
-    source: tools/external_knowledge_search.py
+    source: tools/external_vector_search.py

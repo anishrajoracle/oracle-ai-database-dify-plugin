@@ -52,4 +52,4 @@ class ExternalKnowledgeSearchTool(Tool):
             payload["mode"] = "oracle_text" if use_oracle_text else "like"
             yield self.create_json_message(payload)
         except Exception as exc:
-            yield self.create_json_message(error_payload(exc))
+            yield self.create_json_message(error_payload(exc, tool=self))

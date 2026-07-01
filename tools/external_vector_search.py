@@ -57,4 +57,4 @@ class ExternalVectorSearchTool(Tool):
             payload["distance_metric"] = "cosine"
             yield self.create_json_message(payload)
         except Exception as exc:
-            yield self.create_json_message(error_payload(exc))
+            yield self.create_json_message(error_payload(exc, tool=self))

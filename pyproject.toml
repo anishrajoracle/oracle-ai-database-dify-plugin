@@ -1,11 +1,11 @@
 [project]
 name = "oracle-ai-database-dify-plugin"
 version = "0.0.4"
-description = "Dify Tool plugin for Oracle AI Database"
+description = "Read-only SQL and knowledge retrieval tools for Oracle AI Database in Dify"
 requires-python = ">=3.12,<3.13"
 dependencies = [
-    "dify_plugin>=0.4.0,<0.7.0",
-    "oracledb>=2.4.0",
+    "dify_plugin>=0.9.1,<0.10.0",
+    "oracledb>=4.0.1,<5.0.0",
 ]
 
 [project.optional-dependencies]

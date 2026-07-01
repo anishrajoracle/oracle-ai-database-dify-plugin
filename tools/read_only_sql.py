@@ -33,4 +33,4 @@ class ReadOnlySqlTool(Tool):
             result = client_from_runtime(self).execute_read_only(sql, binds=binds, max_rows=max_rows)
             yield self.create_json_message(result.to_dict())
         except Exception as exc:
-            yield self.create_json_message(error_payload(exc))
+            yield self.create_json_message(error_payload(exc, tool=self))

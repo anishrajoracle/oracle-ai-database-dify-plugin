@@ -2,9 +2,20 @@ from __future__ import annotations
 
 import datetime as dt
 import decimal
+from array import array
 
-from oracle_ai_database.client import OracleDatabaseClient
-from oracle_ai_database.credentials import OracleCredentials
+from oracle_ai_database.client import (
+    DEFAULT_CALL_TIMEOUT_MS,
+    MAX_LOB_UNITS,
+    TRUNCATED_SUFFIX,
+    OracleDatabaseClient,
+    serialize_value,
+)
+from oracle_ai_database.credentials import (
+    DEFAULT_TCP_CONNECT_TIMEOUT_SECONDS,
+    OracleCredentials,
+    redact_connection_values,
+)
 
 
 class FakeCursor:
@@ -33,6 +44,7 @@ class FakeConnection:
     def __init__(self, cursor):
         self.cursor_obj = cursor
         self.closed = False
+        self.call_timeout = None
 
     def cursor(self):
         return self.cursor_obj
@@ -55,6 +67,37 @@ def test_credentials_build_dsn_and_wallet_kwargs():
 
     assert credentials.dsn == "db.example.com:1522/FREEPDB1"
     assert credentials.connect_kwargs()["wallet_location"] == "/wallet"
+    assert credentials.connect_kwargs()["tcp_connect_timeout"] == DEFAULT_TCP_CONNECT_TIMEOUT_SECONDS
+
+
+def test_error_message_redacts_configured_connection_values():
+    message = redact_connection_values(
+        "Login failed for app_user at db.example.com:1521/FREEPDB1 with change-me",
+        {
+            "user": "app_user",
+            "password": "change-me",
+            "dsn": "db.example.com:1521/FREEPDB1",
+        },
+    )
+
+    assert message == "Login failed for [REDACTED] at [REDACTED] with [REDACTED]"
+
+    short_secret_message = redact_connection_values("Login failed with x", {"password": "x"})
+    assert short_secret_message == "Oracle database operation failed. Sensitive connection details were redacted."
+
+
+class FakeLob:
+    def __init__(self, content):
+        self.content = content
+
+    def read(self, offset, amount):
+        assert offset == 1
+        return self.content[:amount]
+
+
+def test_serialize_value_handles_vectors_and_bounds_lobs():
+    assert serialize_value(array("f", [0.25, 0.5])) == [0.25, 0.5]
+    assert serialize_value(FakeLob("x" * (MAX_LOB_UNITS + 1))) == "x" * MAX_LOB_UNITS + TRUNCATED_SUFFIX
 
 
 def test_execute_read_only_uses_binds_and_serializes_rows():
@@ -91,3 +134,4 @@ def test_execute_read_only_uses_binds_and_serializes_rows():
     }
     assert cursor.closed
     assert connection.closed
+    assert connection.call_timeout == DEFAULT_CALL_TIMEOUT_MS

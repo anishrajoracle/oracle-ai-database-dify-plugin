@@ -114,6 +114,21 @@ def test_read_only_sql_tool_rejects_scalar_binds_when_placeholders_exist(monkeyp
     }
 
 
+def test_tool_errors_redact_runtime_connection_values(monkeypatch):
+    def fail_to_create_client(_tool):
+        raise RuntimeError("Connection to db/pdb failed with password secret")
+
+    monkeypatch.setattr(read_only_sql, "client_from_runtime", fail_to_create_client)
+    tool = _tool_instance(read_only_sql.ReadOnlySqlTool)
+
+    message = list(tool._invoke({"sql": "select 1 from dual", "max_rows": 1}))[0]
+
+    assert message["json"] == {
+        "status": "error",
+        "message": "Connection to [REDACTED] failed with password [REDACTED]",
+    }
+
+
 def test_external_knowledge_search_tool_uses_safe_sql_builder(monkeypatch):
     client = FakeClient()
     monkeypatch.setattr(external_knowledge_search, "client_from_runtime", lambda _tool: client)

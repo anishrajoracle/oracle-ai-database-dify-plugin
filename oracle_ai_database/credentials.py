@@ -4,6 +4,21 @@ from dataclasses import dataclass
 from typing import Any
 
 
+DEFAULT_TCP_CONNECT_TIMEOUT_SECONDS = 10.0
+SECRET_CONNECTION_FIELDS = (
+    "password",
+    "wallet_password",
+)
+REDACTED_CONNECTION_FIELDS = (
+    "dsn",
+    "host",
+    "service_name",
+    "user",
+    "config_dir",
+    "wallet_location",
+)
+
+
 class CredentialError(ValueError):
     """Raised when Oracle provider credentials are incomplete or invalid."""
 
@@ -13,6 +28,22 @@ def _clean_optional(value: Any) -> str | None:
         return None
     text = str(value).strip()
     return text or None
+
+
+def redact_connection_values(message: Any, credentials: dict[str, Any]) -> str:
+    """Remove configured connection values from an error before returning it to Dify."""
+    redacted = str(message).strip() or "Oracle database operation failed."
+    for field in SECRET_CONNECTION_FIELDS:
+        value = _clean_optional(credentials.get(field))
+        if value and value in redacted:
+            if len(value) < 4:
+                return "Oracle database operation failed. Sensitive connection details were redacted."
+            redacted = redacted.replace(value, "[REDACTED]")
+    for field in REDACTED_CONNECTION_FIELDS:
+        value = _clean_optional(credentials.get(field))
+        if value and len(value) >= 4:
+            redacted = redacted.replace(value, "[REDACTED]")
+    return redacted
 
 
 @dataclass(frozen=True)
@@ -64,6 +95,7 @@ class OracleCredentials:
             "user": self.user,
             "password": self.password,
             "dsn": self.dsn,
+            "tcp_connect_timeout": DEFAULT_TCP_CONNECT_TIMEOUT_SECONDS,
         }
         if self.config_dir:
             kwargs["config_dir"] = self.config_dir
@@ -72,4 +104,3 @@ class OracleCredentials:
         if self.wallet_password:
             kwargs["wallet_password"] = self.wallet_password
         return kwargs
-

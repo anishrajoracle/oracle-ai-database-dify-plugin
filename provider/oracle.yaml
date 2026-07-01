@@ -2,9 +2,9 @@ identity:
   author: anishrajoracle
   name: oracle
   label:
-    en_US: Oracle AI Database
+    en_US: Knowledge Retrieval for Oracle Database
   description:
-    en_US: Tool provider for Oracle AI Database SQL and knowledge search.
+    en_US: Read-only SQL, Oracle Text, vector, and hybrid retrieval for Oracle Database.
   icon: icon.svg
   tags:
     - productivity
@@ -57,16 +57,22 @@ credentials_for_provider:
     required: false
     label:
       en_US: Wallet Config Directory
+    help:
+      en_US: Directory inside a self-hosted plugin runtime containing tnsnames.ora or sqlnet.ora.
   wallet_location:
     type: text-input
     required: false
     label:
       en_US: Wallet Location
+    help:
+      en_US: Wallet directory mounted inside a self-hosted plugin runtime. Wallet upload is not supported.
   wallet_password:
     type: secret-input
     required: false
     label:
       en_US: Wallet Password
+    help:
+      en_US: Password for the configured wallet, when required.
 tools:
   - tools/read_only_sql.yaml
   - tools/external_knowledge_search.yaml

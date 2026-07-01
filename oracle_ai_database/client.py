@@ -11,6 +11,9 @@ from oracle_ai_database.sql_safety import SafeSql, validate_read_only_sql
 
 
 ConnectFunc = Callable[..., Any]
+DEFAULT_CALL_TIMEOUT_MS = 110_000
+MAX_LOB_UNITS = 16_384
+TRUNCATED_SUFFIX = "...[truncated]"
 
 
 @dataclass(frozen=True)
@@ -40,16 +43,34 @@ def to_vector(values: list[float]) -> array.array:
     return array.array("f", values)
 
 
+def _read_lob(value: Any) -> Any:
+    try:
+        content = value.read(1, MAX_LOB_UNITS + 1)
+    except TypeError:
+        content = value.read()
+    if isinstance(content, str) and len(content) > MAX_LOB_UNITS:
+        return content[:MAX_LOB_UNITS] + TRUNCATED_SUFFIX
+    if isinstance(content, bytes) and len(content) > MAX_LOB_UNITS:
+        return content[:MAX_LOB_UNITS].hex() + TRUNCATED_SUFFIX
+    return content
+
+
 def serialize_value(value: Any) -> Any:
     if hasattr(value, "read"):
-        value = value.read()
+        value = _read_lob(value)
+    if isinstance(value, array.array):
+        return value.tolist()
     if isinstance(value, decimal.Decimal):
         if value == value.to_integral_value():
             return int(value)
         return float(value)
+    if isinstance(value, dt.timedelta):
+        return str(value)
     if isinstance(value, dt.datetime | dt.date):
         return value.isoformat()
     if isinstance(value, bytes):
+        if len(value) > MAX_LOB_UNITS:
+            return value[:MAX_LOB_UNITS].hex() + TRUNCATED_SUFFIX
         return value.hex()
     return value
 
@@ -64,7 +85,9 @@ class OracleDatabaseClient:
         return cls(OracleCredentials.from_mapping(credentials), connect=connect)
 
     def _open_connection(self) -> Any:
-        return self._connect(**self.credentials.connect_kwargs())
+        connection = self._connect(**self.credentials.connect_kwargs())
+        connection.call_timeout = DEFAULT_CALL_TIMEOUT_MS
+        return connection
 
     def ping(self) -> None:
         connection = self._open_connection()
@@ -101,8 +124,7 @@ class OracleDatabaseClient:
                 visible_rows = rows[:max_rows]
                 columns = [description[0] for description in (cursor.description or [])]
                 row_dicts = [
-                    {columns[index]: serialize_value(value) for index, value in enumerate(row)}
-                    for row in visible_rows
+                    {columns[index]: serialize_value(value) for index, value in enumerate(row)} for row in visible_rows
                 ]
                 return QueryResult(
                     columns=columns,

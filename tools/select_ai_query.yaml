@@ -14,12 +14,17 @@ parameters:
     form: llm
     label:
       en_US: Prompt
+    human_description:
+      en_US: Prompt to send to Oracle Select AI.
+    llm_description: Prompt to send to Oracle Select AI.
   - name: profile_name
     type: string
     required: true
     form: form
     label:
       en_US: Select AI Profile
+    human_description:
+      en_US: Oracle Select AI profile name configured in the database.
   - name: action
     type: select
     required: false
@@ -27,6 +32,8 @@ parameters:
     default: chat
     label:
       en_US: Action
+    human_description:
+      en_US: Select AI action to run.
     options:
       - value: chat
         label:

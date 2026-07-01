@@ -35,6 +35,8 @@ parameters:
     max: 1000
     label:
       en_US: Max Rows
+    human_description:
+      en_US: Maximum number of rows to return.
 extra:
   python:
     source: tools/read_only_sql.py

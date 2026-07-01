@@ -5,7 +5,10 @@ identity:
     en_US: Oracle AI Database
   description:
     en_US: Tool provider for Oracle AI Database SQL, Select AI, and knowledge search.
-  icon: ../_assets/icon.svg
+  icon: icon.svg
+  tags:
+    - productivity
+    - utilities
 credentials_for_provider:
   user:
     type: text-input
@@ -69,6 +72,8 @@ tools:
   - tools/select_ai_query.yaml
   - tools/nl2sql_query.yaml
   - tools/external_knowledge_search.yaml
+  - tools/external_vector_search.yaml
+  - tools/hybrid_knowledge_search.yaml
 extra:
   python:
     source: provider/oracle.py

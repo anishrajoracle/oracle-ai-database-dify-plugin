@@ -14,12 +14,17 @@ parameters:
     form: llm
     label:
       en_US: Question
+    human_description:
+      en_US: Natural-language question to convert into Oracle SQL.
+    llm_description: Natural-language question to convert into Oracle SQL.
   - name: profile_name
     type: string
     required: true
     form: form
     label:
       en_US: Select AI Profile
+    human_description:
+      en_US: Oracle Select AI profile name configured in the database.
   - name: execute
     type: boolean
     required: false
@@ -27,6 +32,8 @@ parameters:
     default: false
     label:
       en_US: Execute Generated SQL
+    human_description:
+      en_US: Execute generated SQL after read-only validation.
   - name: max_rows
     type: number
     required: false
@@ -36,6 +43,8 @@ parameters:
     max: 1000
     label:
       en_US: Max Rows
+    human_description:
+      en_US: Maximum number of rows to return if execution is enabled.
 extra:
   python:
     source: tools/nl2sql_query.py

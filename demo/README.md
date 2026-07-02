@@ -38,23 +38,27 @@ Oracle Text setup is best-effort. If the user lacks privileges or Oracle Text is
 
 ## How To Run
 
-Run the setup as the same Oracle user configured in the Dify plugin connection.
+Run the setup, vector seeder, and verification in that order as the same Oracle user configured in the Dify plugin connection. The final verification expects all six support notes to have embeddings, so do not run it immediately after the SQL setup.
 
 With SQLcl:
 
 ```bash
-sql user/password@host:1521/service @demo/setup_support_ops_demo.sql
-sql user/password@host:1521/service @demo/verify_support_ops_demo.sql
+sql user@host:1521/service @demo/setup_support_ops_demo.sql
+uv run --env-file .env python demo/seed_support_note_embeddings.py
+sql user@host:1521/service @demo/verify_support_ops_demo.sql
 ```
 
 With SQL*Plus:
 
 ```bash
-sqlplus user/password@host:1521/service @demo/setup_support_ops_demo.sql
-sqlplus user/password@host:1521/service @demo/verify_support_ops_demo.sql
+sqlplus user@host:1521/service @demo/setup_support_ops_demo.sql
+uv run --env-file .env python demo/seed_support_note_embeddings.py
+sqlplus user@host:1521/service @demo/verify_support_ops_demo.sql
 ```
 
 Do not commit credentials, wallet files, `.env` files, or passwords.
+
+Before running the Python seeder, run `uv sync --frozen --group dev`, copy `.env.example` to the ignored local `.env`, fill `ORACLE_USER`, `ORACLE_PASSWORD`, and `ORACLE_DSN`, and start Ollama with `nomic-embed-text`. The `uv run --env-file .env` command loads those values without putting the password in the shell command. The complete unified MVP workflow uses Oracle Text mode; use the documented LIKE fallback only for a reduced text-tool rehearsal.
 
 ## Expected Dify Workflow Prompts
 
@@ -145,7 +149,7 @@ Expected result:
 Run:
 
 ```bash
-sql user/password@host:1521/service @demo/verify_support_ops_demo.sql
+sql user@host:1521/service @demo/verify_support_ops_demo.sql
 ```
 
 The verification file checks:
@@ -163,7 +167,8 @@ After running the SQL setup, start Ollama with `nomic-embed-text` installed and
 export the Oracle connection variables used by the plugin. Then run:
 
 ```bash
-python demo/seed_support_note_embeddings.py
+uv sync --frozen --group dev
+uv run --env-file .env python demo/seed_support_note_embeddings.py
 ```
 
 The seeder is safe to rerun. It adds two tickets and three support notes,

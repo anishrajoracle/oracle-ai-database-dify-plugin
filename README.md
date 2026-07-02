@@ -24,7 +24,7 @@ Dify Cloud requires a reachable endpoint. Private endpoints and wallet files nor
 
 ## Setup
 
-1. Install from Marketplace or upload the `.difypkg`.
+1. For the current unpublished v0.0.4 build, upload the `.difypkg` manually. Use Marketplace installation only after the public listing is verified.
 2. Under **Plugins**, select **Knowledge Retrieval for Oracle Database** and **Authorize**.
 3. Enter and validate the connection.
 
@@ -65,5 +65,9 @@ Generate vectors upstream with the same dimension as stored vectors. See the [de
 - Connections use 10-second connect and 110-second call timeouts. Errors redact configured secrets but may reveal object names.
 
 The plugin sends credentials and inputs to the configured Oracle endpoint and returns results to Dify. It adds no telemetry or storage. See [PRIVACY.md](https://github.com/anishrajoracle/oracle-ai-database-dify-plugin/blob/main/PRIVACY.md).
+
+## Publishing status
+
+Version 0.0.4 is not yet published or verified in the Dify Marketplace. The next maintainer must complete the ordered engineering, privacy/IP, packaging, live-validation, Marketplace PR, and post-publication steps in [MARKETPLACE_HANDOVER.md](MARKETPLACE_HANDOVER.md). Do not describe a local `.difypkg` as Marketplace availability.
 
 Oracle and Oracle AI Database are trademarks of Oracle and/or its affiliates. This community plugin is not an official Oracle product and is not endorsed by Oracle.

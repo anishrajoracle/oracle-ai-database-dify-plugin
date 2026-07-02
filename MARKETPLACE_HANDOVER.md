@@ -1,15 +1,16 @@
 # Dify Marketplace Publication Handover
 
-This is the ordered owner checklist for taking **Knowledge Retrieval for Oracle Database** from a locally packaged v0.0.4 plugin to an approved Dify Marketplace listing.
+This is the ordered owner checklist for taking the **Knowledge Retrieval for Oracle Database** v0.0.5 source release candidate to an approved Dify Marketplace listing.
 
 Marketplace publication is not part of the completed MVP. Do not describe the plugin as Marketplace-published, Dify-verified, Oracle-verified, signed, or production-certified until the corresponding approval is recorded.
 
 ## Current handover state
 
 - Source repository: `https://github.com/anishrajoracle/oracle-ai-database-dify-plugin`
-- Current release line: `main`, version `0.0.4`
-- Packaged v0.0.4 source snapshot: `b41e852154c585299f48eaef681e9296356224ea`
-- Provenance check: every one of the 26 files in the handover `.difypkg` matches that commit byte-for-byte
+- Current release line: `main`, version `0.0.5`
+- Latest frozen local package: v0.0.4 from source snapshot `b41e852154c585299f48eaef681e9296356224ea`
+- v0.0.4 provenance check: every one of the 26 files in its handover `.difypkg` matches that commit byte-for-byte
+- v0.0.5 package status: not built; freeze, package, and validate the candidate after its CI commit passes
 - Plugin identity: `anishrajoracle/oracle_ai_database`
 - Distribution status: local package only; `verified: false`
 - Core tools: read-only SQL, Oracle Text search, Oracle VECTOR search, and hybrid search
@@ -68,7 +69,7 @@ Search both `https://marketplace.dify.ai` and `https://github.com/langgenius/dif
 
 Explain the unique value in the future PR: one read-only plugin combines relational SQL, Oracle Text, existing Oracle VECTOR rows, and weighted hybrid retrieval while keeping credentials in Dify provider authorization.
 
-Confirm that version `0.0.4` has never been published for this plugin identity. If it has, bump the manifest version and document a meaningful change; Marketplace updates cannot reuse an existing version.
+Confirm that version `0.0.5` has never been published for this plugin identity. If it has, bump the manifest version and document a meaningful change; Marketplace updates cannot reuse an existing version.
 
 Exit criterion: the PR draft records the uniqueness search date and confirms the version is new.
 
@@ -129,7 +130,7 @@ Exit criterion: the exact packaged artifact completes the rehearsed workflow and
 
 ### 9. Create the source release record
 
-Create a signed or annotated `v0.0.4` tag and a GitHub release for the frozen source commit. Attach the same `.difypkg`, its SHA-256, release notes, compatibility information, known limitations, and support link.
+Create a signed or annotated `v0.0.5` tag and a GitHub release for the frozen source commit. Attach the same `.difypkg`, its SHA-256, release notes, compatibility information, known limitations, and support link.
 
 This source release is not the Marketplace publication itself; it provides provenance and a recovery point.
 

@@ -24,7 +24,7 @@ Dify Cloud requires a reachable endpoint. Private endpoints and wallet files nor
 
 ## Setup
 
-1. For the current unpublished v0.0.4 build, upload the `.difypkg` manually. Use Marketplace installation only after the public listing is verified.
+1. The latest frozen local package is v0.0.4. Current source is the unpublished v0.0.5 release candidate and must be packaged and validated before installation. Use Marketplace installation only after the public listing is verified.
 2. Under **Plugins**, select **Knowledge Retrieval for Oracle Database** and **Authorize**.
 3. Enter and validate the connection.
 
@@ -68,6 +68,6 @@ The plugin sends credentials and inputs to the configured Oracle endpoint and re
 
 ## Publishing status
 
-Version 0.0.4 is not yet published or verified in the Dify Marketplace. The next maintainer must complete the ordered engineering, privacy/IP, packaging, live-validation, Marketplace PR, and post-publication steps in [MARKETPLACE_HANDOVER.md](MARKETPLACE_HANDOVER.md). Do not describe a local `.difypkg` as Marketplace availability.
+Version 0.0.5 is a source release candidate and is not yet packaged, published, or verified in the Dify Marketplace. The latest frozen local package remains v0.0.4. The next maintainer must complete the ordered engineering, privacy/IP, packaging, live-validation, Marketplace PR, and post-publication steps in [MARKETPLACE_HANDOVER.md](MARKETPLACE_HANDOVER.md). Do not describe a local `.difypkg` as Marketplace availability.
 
 Oracle and Oracle AI Database are trademarks of Oracle and/or its affiliates. This community plugin is not an official Oracle product and is not endorsed by Oracle.

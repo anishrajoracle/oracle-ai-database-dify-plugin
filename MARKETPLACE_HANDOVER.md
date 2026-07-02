@@ -10,12 +10,14 @@ Marketplace publication is not part of the completed MVP. Do not describe the pl
 - Current release line: `main`, version `0.0.5`
 - Latest frozen local package: v0.0.4 from source snapshot `b41e852154c585299f48eaef681e9296356224ea`
 - v0.0.4 provenance check: every one of the 26 files in its handover `.difypkg` matches that commit byte-for-byte
-- v0.0.5 package status: not built; freeze, package, and validate the candidate after its CI commit passes
+- v0.0.4 file SHA-256: `b8d3f5a21dddd7ae4abca8eaa5cefefb56be51d166a14ffc5d4d8733ee22b873`
+- v0.0.4 Dify content checksum: `0b093d4f477d980a4605c0479a879607c62586a9befd599ca496a16d741c9775`
+- v0.0.5 package status: not built; GitHub Plugin CI is enabled and passing on `main`
 - Plugin identity: `anishrajoracle/oracle_ai_database`
 - Distribution status: local package only; `verified: false`
 - Core tools: read-only SQL, Oracle Text search, Oracle VECTOR search, and hybrid search
 - Existing strengths: English README, non-empty `PRIVACY.md`, custom icon, pinned SDK/dependencies, bounded outputs, credential redaction, timeouts, unit tests, and a deterministic demo workflow
-- Remaining release blockers: final publisher/brand decision, license selection, CI/release automation, exact-package live validation, code-format cleanup, final security/privacy review, and Marketplace PR review
+- Remaining release blockers: final publisher/brand decision, license selection, tag/release creation, exact-package live validation, final security/privacy review, and Marketplace PR review
 
 ## Publication steps — perform in this order
 
@@ -39,9 +41,9 @@ Exit criterion: `git status` is clean and the owner record contains one immutabl
 
 Before requesting public distribution:
 
-- Make `ruff format --check .` pass.
-- Reject `NaN` and infinity in weights and vectors with `math.isfinite()` tests.
-- Run the full unit suite and retain its output.
+- [x] Make `ruff format --check .` pass.
+- [x] Reject `NaN` and infinity in weights and vectors with `math.isfinite()` tests.
+- [x] Run the full unit suite and retain its output in GitHub Actions.
 - Run remote debugging or an equivalent real plugin-daemon session against Oracle.
 - Exercise all four tools, the expected DML rejection, credential redaction, timeout behavior, Oracle Text mode, 768-dimensional VECTOR mode, and 0.7/0.3 hybrid mode.
 - Test the minimum declared Dify version and both declared architectures where practical.

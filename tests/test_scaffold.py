@@ -1,11 +1,33 @@
 from __future__ import annotations
 
+import tomllib
 from pathlib import Path
 
 import yaml
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_plugin_release_versions_are_consistent():
+    manifest = yaml.safe_load((ROOT / "manifest.yaml").read_text())
+    pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text())
+    lockfile = tomllib.loads((ROOT / "uv.lock").read_text())
+    locked_project = next(package for package in lockfile["package"] if package["name"] == pyproject["project"]["name"])
+
+    assert manifest["version"] == pyproject["project"]["version"]
+    assert locked_project["version"] == manifest["version"]
+
+
+def test_install_requirements_match_project_dependencies():
+    pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text())
+    requirements = {
+        line.strip()
+        for line in (ROOT / "requirements.txt").read_text().splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    }
+
+    assert requirements == set(pyproject["project"]["dependencies"])
 
 
 def test_manifest_declares_only_tool_plugin_provider():

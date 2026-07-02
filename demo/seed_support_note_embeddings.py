@@ -135,8 +135,7 @@ def embed(text: str) -> list[float]:
 
 def ensure_embedding_column(cursor: Any) -> None:
     cursor.execute(
-        "SELECT data_type FROM user_tab_columns "
-        "WHERE table_name = 'DEMO_SUPPORT_NOTES' AND column_name = 'EMBEDDING'"
+        "SELECT data_type FROM user_tab_columns WHERE table_name = 'DEMO_SUPPORT_NOTES' AND column_name = 'EMBEDDING'"
     )
     row = cursor.fetchone()
     if row is None:
@@ -208,11 +207,7 @@ def sync_oracle_text(cursor: Any) -> None:
 
 
 def verify(cursor: Any) -> None:
-    cursor.execute(
-        "SELECT COUNT(*), "
-        "SUM(CASE WHEN embedding IS NOT NULL THEN 1 ELSE 0 END) "
-        "FROM DEMO_SUPPORT_NOTES"
-    )
+    cursor.execute("SELECT COUNT(*), SUM(CASE WHEN embedding IS NOT NULL THEN 1 ELSE 0 END) FROM DEMO_SUPPORT_NOTES")
     total, vectorized = cursor.fetchone()
     if total != vectorized:
         raise RuntimeError(f"Expected all support notes to be vectorized, got {vectorized}/{total}")

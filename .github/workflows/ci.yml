@@ -1,0 +1,46 @@
+name: Plugin CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: plugin-ci-${{ github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          enable-cache: true
+          python-version: "3.12"
+
+      - name: Check lockfile
+        run: uv lock --check
+
+      - name: Install locked development dependencies
+        run: uv sync --frozen --group dev
+
+      - name: Run unit tests
+        run: uv run --frozen pytest -q
+
+      - name: Run Ruff lint
+        run: uv run --frozen ruff check .
+
+      - name: Check Ruff formatting
+        run: uv run --frozen ruff format --check .
+
+      - name: Compile runtime modules
+        run: uv run --frozen python -m compileall -q main.py oracle_ai_database provider tools

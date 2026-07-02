@@ -3,6 +3,7 @@ from __future__ import annotations
 import array
 import datetime as dt
 import decimal
+import math
 from dataclasses import dataclass
 from typing import Any, Callable
 
@@ -40,14 +41,17 @@ def _default_connect(**kwargs: Any) -> Any:
 
 
 def to_vector(values: list[float]) -> array.array:
-    return array.array("f", values)
+    vector = array.array("f", values)
+    if any(not math.isfinite(value) for value in vector):
+        raise ValueError("query_vector values must fit in the finite FLOAT32 range.")
+    return vector
 
 
 def _read_lob(value: Any) -> Any:
     try:
         content = value.read(1, MAX_LOB_UNITS + 1)
     except TypeError:
-        content = value.read()
+        content = value.read(MAX_LOB_UNITS + 1)
     if isinstance(content, str) and len(content) > MAX_LOB_UNITS:
         return content[:MAX_LOB_UNITS] + TRUNCATED_SUFFIX
     if isinstance(content, bytes) and len(content) > MAX_LOB_UNITS:

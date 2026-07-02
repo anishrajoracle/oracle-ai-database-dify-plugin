@@ -4,12 +4,15 @@ import datetime as dt
 import decimal
 from array import array
 
+import pytest
+
 from oracle_ai_database.client import (
     DEFAULT_CALL_TIMEOUT_MS,
     MAX_LOB_UNITS,
     TRUNCATED_SUFFIX,
     OracleDatabaseClient,
     serialize_value,
+    to_vector,
 )
 from oracle_ai_database.credentials import (
     DEFAULT_TCP_CONNECT_TIMEOUT_SECONDS,
@@ -53,6 +56,13 @@ class FakeConnection:
         self.closed = True
 
 
+def test_to_vector_rejects_values_that_overflow_float32():
+    assert to_vector([0.25, 0.5]).typecode == "f"
+
+    with pytest.raises(ValueError, match="finite FLOAT32 range"):
+        to_vector([3.4028236e38])
+
+
 def test_credentials_build_dsn_and_wallet_kwargs():
     credentials = OracleCredentials.from_mapping(
         {
@@ -92,12 +102,24 @@ class FakeLob:
 
     def read(self, offset, amount):
         assert offset == 1
+        assert amount == MAX_LOB_UNITS + 1
+        return self.content[:amount]
+
+
+class FakeOneArgumentLob:
+    def __init__(self, content):
+        self.content = content
+
+    def read(self, amount):
+        assert amount == MAX_LOB_UNITS + 1
         return self.content[:amount]
 
 
 def test_serialize_value_handles_vectors_and_bounds_lobs():
     assert serialize_value(array("f", [0.25, 0.5])) == [0.25, 0.5]
     assert serialize_value(FakeLob("x" * (MAX_LOB_UNITS + 1))) == "x" * MAX_LOB_UNITS + TRUNCATED_SUFFIX
+    assert serialize_value(FakeOneArgumentLob("x" * (MAX_LOB_UNITS + 1))) == ("x" * MAX_LOB_UNITS + TRUNCATED_SUFFIX)
+    assert serialize_value(FakeLob(b"x" * (MAX_LOB_UNITS + 1))) == ((b"x" * MAX_LOB_UNITS).hex() + TRUNCATED_SUFFIX)
 
 
 def test_execute_read_only_uses_binds_and_serializes_rows():

@@ -14,4 +14,4 @@ class OracleProvider(ToolProvider):
         try:
             OracleDatabaseClient.from_credentials(credentials).ping()
         except Exception as exc:
-            raise ToolProviderCredentialValidationError(redact_connection_values(exc, credentials)) from exc
+            raise ToolProviderCredentialValidationError(redact_connection_values(exc, credentials)) from None

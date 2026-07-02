@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 from dataclasses import dataclass
 from typing import Any
@@ -87,6 +88,8 @@ def bounded_float(value: Any, *, default: float, minimum: float, maximum: float,
         parsed = float(value)
     except (TypeError, ValueError) as exc:
         raise ValueError(f"{name} must be a number.") from exc
+    if not math.isfinite(parsed):
+        raise ValueError(f"{name} must be a finite number.")
     if parsed < minimum or parsed > maximum:
         raise ValueError(f"{name} must be between {minimum} and {maximum}.")
     return parsed
@@ -187,9 +190,12 @@ def parse_vector(value: Any, *, name: str = "query_vector") -> list[float]:
         if isinstance(item, bool):
             raise ValueError(f"{name}[{index}] must be a number.")
         try:
-            vector.append(float(item))
+            number = float(item)
         except (TypeError, ValueError) as exc:
             raise ValueError(f"{name}[{index}] must be a number.") from exc
+        if not math.isfinite(number):
+            raise ValueError(f"{name}[{index}] must be a finite number.")
+        vector.append(number)
     return vector
 
 

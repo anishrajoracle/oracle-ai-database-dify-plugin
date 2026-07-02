@@ -99,12 +99,24 @@ def test_parse_vector_accepts_json_array_and_rejects_invalid_values():
         parse_vector("[0.1, true]")
 
 
+@pytest.mark.parametrize("value", ["[NaN]", "[Infinity]", "[-Infinity]"])
+def test_parse_vector_rejects_non_finite_values(value):
+    with pytest.raises(ValueError, match=r"query_vector\[0\] must be a finite number"):
+        parse_vector(value)
+
+
 def test_bounded_float_accepts_valid_weights_and_rejects_invalid_values():
     assert bounded_float("0.7", default=0.5, minimum=0, maximum=1, name="weight") == 0.7
     assert bounded_float("", default=0.5, minimum=0, maximum=1, name="weight") == 0.5
 
     with pytest.raises(ValueError, match="weight must be between 0 and 1"):
         bounded_float("1.5", default=0.5, minimum=0, maximum=1, name="weight")
+
+
+@pytest.mark.parametrize("value", ["nan", "inf", "-inf"])
+def test_bounded_float_rejects_non_finite_values(value):
+    with pytest.raises(ValueError, match="weight must be a finite number"):
+        bounded_float(value, default=0.5, minimum=0, maximum=1, name="weight")
 
 
 def test_external_vector_search_sql_uses_cosine_vector_distance():

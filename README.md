@@ -15,7 +15,9 @@ Read-only SQL and retrieval tools for Oracle AI Database in Dify. It exposes no 
 
 ## Requirements and connection
 
-- Dify 1.14.2 or later and a reachable Oracle endpoint.
+- Declared minimum Dify target: 1.14.2. The exact v0.0.5 package has not yet been validated on that minimum version.
+- Declared architecture targets: `amd64` and `arm64`. Exact-package validation on both remains a release gate.
+- A reachable Oracle endpoint.
 - A dedicated account with only the required `SELECT` privileges.
 - An Oracle Text `CONTEXT` index when Oracle Text mode is enabled.
 - Oracle `VECTOR` support for vector and hybrid search. Query and stored vectors must have the same dimension.
@@ -24,7 +26,7 @@ Dify Cloud requires a reachable endpoint. Private endpoints and wallet files nor
 
 ## Setup
 
-1. The latest frozen local package is v0.0.4. Current source is the unpublished v0.0.5 release candidate and must be packaged and validated before installation. Use Marketplace installation only after the public listing is verified.
+1. Treat any v0.0.5 package built from this source as a local, unpublished release candidate. Validate its exact checksum in a clean Dify workspace before relying on it. The packaged incident workflow remains bound to v0.0.4 until it is deliberately rebound, rehearsed, and re-exported. Use Marketplace installation only after the public listing is verified.
 2. Under **Plugins**, select **Knowledge Retrieval for Oracle Database** and **Authorize**.
 3. Enter and validate the connection.
 
@@ -62,12 +64,12 @@ Generate vectors upstream with the same dimension as stored vectors. See the [de
 
 - SQL checks reject multiple statements, comments, DML, DDL, PL/SQL, `SELECT FOR UPDATE`, and `DBMS_*`. Permitted functions may still have side effects; least-privilege grants are the real boundary.
 - Only simple, unquoted identifiers are supported. Results cap at 1,000 SQL rows, 100 search rows, and 16 KiB per LOB; caps do not limit query cost.
-- Connections use 10-second connect and 110-second call timeouts. Errors redact configured secrets but may reveal object names.
+- Connections use 10-second connect and 110-second call timeouts. Returned error strings receive only best-effort exact-value redaction of configured connection fields. This does not sanitize SQL literals, bind values, returned rows, object names, or Dify workflow traces or logs.
 
 The plugin sends credentials and inputs to the configured Oracle endpoint and returns results to Dify. It adds no telemetry or storage. See [PRIVACY.md](https://github.com/anishrajoracle/oracle-ai-database-dify-plugin/blob/main/PRIVACY.md).
 
 ## Publishing status
 
-Version 0.0.5 is a source release candidate and is not yet packaged, published, or verified in the Dify Marketplace. The latest frozen local package remains v0.0.4. The next maintainer must complete the ordered engineering, privacy/IP, packaging, live-validation, Marketplace PR, and post-publication steps in [MARKETPLACE_HANDOVER.md](MARKETPLACE_HANDOVER.md). Do not describe a local `.difypkg` as Marketplace availability.
+Version 0.0.5 is a local release candidate, not a Marketplace release. Building a `.difypkg` does not establish clean-workspace compatibility, publication, or Dify verification. The next maintainer must complete the ordered engineering, privacy/IP, exact-package live validation, Marketplace PR, and post-publication steps in [MARKETPLACE_HANDOVER.md](MARKETPLACE_HANDOVER.md). Do not describe a local `.difypkg` as Marketplace availability.
 
 Oracle and Oracle AI Database are trademarks of Oracle and/or its affiliates. This community plugin is not an official Oracle product and is not endorsed by Oracle.

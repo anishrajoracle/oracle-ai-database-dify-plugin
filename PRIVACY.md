@@ -16,13 +16,13 @@ These values may contain personal, confidential, financial, health, authenticati
 
 ## Purpose and data flow
 
-At invocation time, Dify supplies the configured provider credentials and tool inputs to the plugin. The plugin uses them to open a connection to the Oracle database endpoint selected by the workspace user, execute the requested read operation, and return the result or a redacted error to Dify.
+At invocation time, Dify supplies the configured provider credentials and tool inputs to the plugin. The plugin uses them to open a connection to the Oracle database endpoint selected by the workspace user, execute the requested read operation, and return the result or an error string to Dify. Before returning an error string, the plugin attempts the best-effort exact-value redaction described below.
 
 The plugin does not send data to an author-operated service, advertising service, analytics service, or any endpoint other than the configured Oracle database. Data is also processed by the Dify deployment running the plugin; Dify Cloud users should review the [Dify Privacy Policy](https://dify.ai/privacy), and self-hosted users should review their deployment operator's policy. If the database is hosted by Oracle Cloud or another provider, that provider processes the connection and query data under its own terms. Oracle's services privacy policy is available at [oracle.com/legal/privacy/services-privacy-policy.html](https://www.oracle.com/legal/privacy/services-privacy-policy.html).
 
 ## Storage, logging, and retention
 
-The plugin has no persistent data store, creates no user profile, and adds no telemetry. Connection settings, inputs, and results are held only as needed for an invocation. Configured secrets are redacted from errors returned by the plugin.
+The plugin has no persistent data store, creates no user profile, and adds no telemetry. Connection settings, inputs, and results are held only as needed for an invocation. For error strings returned by the plugin, redaction is limited to best-effort replacement of exact configured connection values when those literal values appear in the error text. This is not a general data-loss-prevention control and does not sanitize SQL literals, bind values, returned rows, object names, or Dify workflow traces or logs. Deployment owners must restrict access to and redact those surfaces separately.
 
 Dify may store provider credentials and retain workflow inputs, outputs, or logs according to the Dify deployment's configuration and policies. The connected Oracle database or its hosting provider may independently audit or log connections and SQL. Those systems, not this plugin, control that retention. Users should use the relevant Dify and Oracle administration tools to review or delete retained data.
 

@@ -2,12 +2,15 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
+import pytest
+
 from oracle_ai_database.client import QueryResult
 from tools import (
     external_knowledge_search,
     external_vector_search,
     hybrid_knowledge_search,
     read_only_sql,
+    write_only_sql,
 )
 
 
@@ -16,6 +19,7 @@ class FakeClient:
         self.read_calls = []
         self.vector_search_calls = []
         self.hybrid_search_calls = []
+        self.write_calls = []
 
     def execute_read_only(self, sql, *, binds, max_rows):
         self.read_calls.append((sql, binds, max_rows))
@@ -47,10 +51,31 @@ class FakeClient:
             truncated=False,
         )
 
+    def execute_write_only(
+        self,
+        sql,
+        *,
+        binds,
+        allowed_tables,
+        allow_delete,
+        max_affected_rows,
+    ):
+        self.write_calls.append((sql, binds, allowed_tables, allow_delete, max_affected_rows))
+        from oracle_ai_database.client import WriteResult
 
-def _tool_instance(cls):
+        return WriteResult(operation="UPDATE", target_table="TICKETS", affected_rows=1)
+
+
+def _tool_instance(cls, *, enable_writes=False):
     tool = cls()
-    tool.runtime = SimpleNamespace(credentials={"user": "app", "password": "secret", "dsn": "db/pdb"})
+    tool.runtime = SimpleNamespace(
+        credentials={
+            "user": "app",
+            "password": "secret",
+            "dsn": "db/pdb",
+            "enable_writes": enable_writes,
+        }
+    )
     return tool
 
 
@@ -72,6 +97,134 @@ def test_read_only_sql_tool_returns_json_message(monkeypatch):
     assert messages[0]["type"] == "json"
     assert messages[0]["json"]["status"] == "success"
     assert client.read_calls[0] == ("select id from employees where id = :id", {"id": 1}, 25)
+
+
+def test_write_only_sql_tool_executes_allowlisted_bounded_dml(monkeypatch):
+    client = FakeClient()
+    monkeypatch.setattr(write_only_sql, "client_from_runtime", lambda _tool: client)
+    tool = _tool_instance(write_only_sql.WriteOnlySqlTool, enable_writes=True)
+
+    message = list(
+        tool._invoke(
+            {
+                "sql": "update tickets set status = :status where id = :id",
+                "bind_parameters": '{"status": "CLOSED", "id": 42}',
+                "allowed_tables": "tickets, audit_log",
+                "allow_delete": False,
+                "max_affected_rows": 1,
+            }
+        )
+    )[0]
+
+    assert message["json"] == {
+        "status": "success",
+        "operation": "UPDATE",
+        "target_table": "TICKETS",
+        "affected_rows": 1,
+        "committed": True,
+    }
+    assert client.write_calls == [
+        (
+            "update tickets set status = :status where id = :id",
+            {"status": "CLOSED", "id": 42},
+            {"TICKETS", "AUDIT_LOG"},
+            False,
+            1,
+        )
+    ]
+
+
+@pytest.mark.parametrize("enable_writes", [False, None, "true", 1])
+def test_write_only_sql_tool_requires_explicit_human_opt_in(monkeypatch, enable_writes):
+    client = FakeClient()
+    monkeypatch.setattr(write_only_sql, "client_from_runtime", lambda _tool: client)
+    tool = _tool_instance(write_only_sql.WriteOnlySqlTool, enable_writes=enable_writes)
+
+    message = list(
+        tool._invoke(
+            {
+                "sql": "insert into tickets (id) values (:id)",
+                "bind_parameters": '{"id": 42}',
+                "allowed_tables": "tickets",
+                "max_affected_rows": 1,
+            }
+        )
+    )[0]
+
+    assert message["json"] == {
+        "status": "error",
+        "message": "Write execution is disabled. Enable it explicitly in the provider authorization.",
+    }
+    assert client.write_calls == []
+
+
+def test_write_only_sql_tool_rejects_row_limit_over_hard_cap_before_connecting(monkeypatch):
+    client = FakeClient()
+    monkeypatch.setattr(write_only_sql, "client_from_runtime", lambda _tool: client)
+    tool = _tool_instance(write_only_sql.WriteOnlySqlTool, enable_writes=True)
+
+    message = list(
+        tool._invoke(
+            {
+                "sql": "insert into tickets (id) values (:id)",
+                "bind_parameters": '{"id": 42}',
+                "allowed_tables": "tickets",
+                "max_affected_rows": 101,
+            }
+        )
+    )[0]
+
+    assert message["json"] == {
+        "status": "error",
+        "message": "max_affected_rows must be between 1 and 100.",
+    }
+    assert client.write_calls == []
+
+
+def test_write_only_sql_tool_rejects_empty_table_allowlist_before_connecting(monkeypatch):
+    client = FakeClient()
+    monkeypatch.setattr(write_only_sql, "client_from_runtime", lambda _tool: client)
+    tool = _tool_instance(write_only_sql.WriteOnlySqlTool, enable_writes=True)
+
+    message = list(
+        tool._invoke(
+            {
+                "sql": "insert into tickets (id) values (:id)",
+                "bind_parameters": '{"id": 42}',
+                "allowed_tables": "",
+                "max_affected_rows": 1,
+            }
+        )
+    )[0]
+
+    assert message["json"] == {
+        "status": "error",
+        "message": "allowed_tables must contain at least one table.",
+    }
+    assert client.write_calls == []
+
+
+def test_write_only_sql_tool_rejects_missing_bind_values_before_connecting(monkeypatch):
+    client = FakeClient()
+    monkeypatch.setattr(write_only_sql, "client_from_runtime", lambda _tool: client)
+    tool = _tool_instance(write_only_sql.WriteOnlySqlTool, enable_writes=True)
+
+    message = list(
+        tool._invoke(
+            {
+                "sql": "update tickets set status = :status where id = :id",
+                "bind_parameters": '{"status": "CLOSED"}',
+                "allowed_tables": "tickets",
+                "max_affected_rows": 1,
+            }
+        )
+    )[0]
+
+    assert message["json"] == {
+        "status": "error",
+        "message": "Missing write bind parameters: ID.",
+    }
+    assert client.write_calls == []
 
 
 def test_read_only_sql_tool_ignores_accidental_scalar_binds_without_placeholders(monkeypatch):

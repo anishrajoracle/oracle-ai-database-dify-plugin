@@ -1,0 +1,58 @@
+identity:
+  name: write_only_sql
+  author: anishrajoracle
+  label:
+    en_US: Configured write action
+description:
+  human:
+    en_US: Execute one preconfigured, bounded Oracle INSERT, UPDATE, or DELETE statement.
+  llm: Execute a human-configured Oracle write action using named bind values. The tool returns only an operation receipt.
+parameters:
+  - name: sql
+    type: string
+    required: true
+    form: form
+    label:
+      en_US: SQL Template
+    human_description:
+      en_US: One INSERT, UPDATE, or DELETE statement using named binds. UPDATE and DELETE require WHERE.
+  - name: allowed_tables
+    type: string
+    required: true
+    form: form
+    label:
+      en_US: Allowed Tables
+    human_description:
+      en_US: Comma-separated unquoted table names. Write SQL supports only letters, digits, and underscores in identifiers.
+  - name: allow_delete
+    type: boolean
+    required: false
+    form: form
+    default: false
+    label:
+      en_US: Allow DELETE
+    human_description:
+      en_US: Permit DELETE statements for this configuration. Leave disabled unless required.
+  - name: max_affected_rows
+    type: number
+    required: false
+    form: form
+    default: 1
+    min: 1
+    max: 100
+    label:
+      en_US: Maximum Affected Rows
+    human_description:
+      en_US: Roll back the transaction if Oracle reports more affected rows than this limit.
+  - name: bind_parameters
+    type: string
+    required: true
+    form: llm
+    label:
+      en_US: Bind Parameters JSON
+    human_description:
+      en_US: JSON object containing the named values used by the configured SQL template.
+    llm_description: JSON object using exactly the bind names and scalar values documented in the workflow instructions. Do not add keys.
+extra:
+  python:
+    source: tools/write_only_sql.py

@@ -46,6 +46,7 @@ def test_provider_and_tool_yaml_sources_exist():
     assert provider["extra"]["python"]["source"] == "provider/oracle.py"
     assert provider["tools"] == [
         "tools/read_only_sql.yaml",
+        "tools/write_only_sql.yaml",
         "tools/external_knowledge_search.yaml",
         "tools/external_vector_search.yaml",
         "tools/hybrid_knowledge_search.yaml",
@@ -56,3 +57,22 @@ def test_provider_and_tool_yaml_sources_exist():
         tool_config = yaml.safe_load(tool_yaml.read_text())
         source = ROOT / tool_config["extra"]["python"]["source"]
         assert source.exists(), source
+
+
+def test_write_tool_keeps_sql_and_safety_limits_out_of_llm_control():
+    provider = yaml.safe_load((ROOT / "provider/oracle.yaml").read_text())
+    tool_config = yaml.safe_load((ROOT / "tools/write_only_sql.yaml").read_text())
+    parameters = {parameter["name"]: parameter for parameter in tool_config["parameters"]}
+
+    assert parameters["sql"]["form"] == "form"
+    assert parameters["allowed_tables"]["form"] == "form"
+    assert provider["credentials_for_provider"]["enable_writes"]["type"] == "boolean"
+    assert provider["credentials_for_provider"]["enable_writes"]["default"] is False
+    assert parameters["allow_delete"]["form"] == "form"
+    assert parameters["allow_delete"]["default"] is False
+    assert parameters["max_affected_rows"]["form"] == "form"
+    assert parameters["max_affected_rows"]["default"] == 1
+    assert parameters["max_affected_rows"]["min"] == 1
+    assert parameters["max_affected_rows"]["max"] == 100
+    assert parameters["bind_parameters"]["form"] == "llm"
+    assert parameters["bind_parameters"]["required"] is True

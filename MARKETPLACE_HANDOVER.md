@@ -1,21 +1,23 @@
 # Dify Marketplace Publication Handover
 
-This is the ordered owner checklist for taking the **Knowledge Retrieval for Oracle Database** v0.0.5 source release candidate to an approved Dify Marketplace listing.
+This is the ordered owner checklist for taking the **Guarded Oracle Retrieval and Actions** v0.0.6 source release candidate to an approved Dify Marketplace listing.
 
 Marketplace publication is not part of the completed MVP. Do not describe the plugin as Marketplace-published, Dify-verified, Oracle-verified, signed, or production-certified until the corresponding approval is recorded.
 
 ## Current handover state
 
 - Source repository: `https://github.com/anishrajoracle/oracle-ai-database-dify-plugin`
-- Current release line: `main`, version `0.0.5`
+- Intended release line: `main`, version `0.0.6`
 - Latest frozen local package: v0.0.4 from source snapshot `b41e852154c585299f48eaef681e9296356224ea`
 - v0.0.4 provenance check: every one of the 26 files in its handover `.difypkg` matches that commit byte-for-byte
 - v0.0.4 file SHA-256: `b8d3f5a21dddd7ae4abca8eaa5cefefb56be51d166a14ffc5d4d8733ee22b873`
 - v0.0.4 Dify content checksum: `0b093d4f477d980a4605c0479a879607c62586a9befd599ca496a16d741c9775`
-- v0.0.5 package status: not built; GitHub Plugin CI is enabled and passing on `main`
+- v0.0.5 was an unpackaged safety release candidate and is superseded by v0.0.6.
+- v0.0.6 package status: not built or live-validated; GitHub Plugin CI must pass on the frozen release commit.
+- Source-level Oracle check on July 3, 2026: local Oracle 23ai Free committed two single-row inserts, exposed both rows to a second connection, rolled back a two-row update under a one-row cap, committed one-row update/delete actions, and returned receipts without row data. Disposable test users were removed. This does not replace exact-package validation in Dify.
 - Plugin identity: `anishrajoracle/oracle_ai_database`
 - Distribution status: local package only; `verified: false`
-- Core tools: read-only SQL, Oracle Text search, Oracle VECTOR search, and hybrid search
+- Core tools: read-only SQL, configured write action, Oracle Text search, Oracle VECTOR search, and hybrid search
 - Existing strengths: English README, non-empty `PRIVACY.md`, custom icon, pinned SDK/dependencies, bounded outputs, credential redaction, timeouts, unit tests, and a deterministic demo workflow
 - Remaining release blockers: final publisher/brand decision, license selection, tag/release creation, exact-package live validation, final security/privacy review, and Marketplace PR review
 
@@ -43,9 +45,10 @@ Before requesting public distribution:
 
 - [x] Make `ruff format --check .` pass.
 - [x] Reject `NaN` and infinity in weights and vectors with `math.isfinite()` tests.
-- [x] Run the full unit suite and retain its output in GitHub Actions.
+- Run the full v0.0.6 unit suite and retain its output in GitHub Actions after the release-candidate commit is pushed.
 - Run remote debugging or an equivalent real plugin-daemon session against Oracle.
-- Exercise all four tools, the expected DML rejection, credential redaction, timeout behavior, Oracle Text mode, 768-dimensional VECTOR mode, and 0.7/0.3 hybrid mode.
+- Exercise all five tools, read-tool DML rejection, disabled-write rejection, one committed insert/update, duplicate/idempotency behavior, over-limit rollback, privilege denial, commit-failure messaging, credential redaction, timeout behavior, Oracle Text mode, 768-dimensional VECTOR mode, and 0.7/0.3 hybrid mode.
+- Use a disposable write table and verify visibility from a second connection after commit and absence after rollback. Do not use production data.
 - Test the minimum declared Dify version and both declared architectures where practical.
 - Confirm result limits bound output and document that they do not bound database work.
 
@@ -59,7 +62,7 @@ Confirm that:
 - README setup, required credentials, networking constraints, wallet limitations, usage, support, and known limitations match tested behavior.
 - Every user-facing label, description, help string, error message, PR title, and PR body is English.
 - `PRIVACY.md` declares what query text, embeddings, credentials, connection data, and returned database data are processed; where they go; whether anything is stored or logged; and what third parties receive.
-- The privacy declaration covers the configured Oracle endpoint and any service the plugin itself calls. The current plugin adds no telemetry, but the deployment owner remains responsible for Oracle-side logging, retention, and access control.
+- The privacy declaration covers the configured Oracle endpoint, persistent mutations made by the write action, and any service the plugin itself calls. The current plugin adds no telemetry, but the deployment owner remains responsible for Oracle-side logging, retention, and access control.
 - No credentials, wallets, private endpoints, production data, or real user data appear in Git, fixtures, screenshots, logs, or the package.
 - The plugin name and icon are unique, accurate, sharp, and legally approved. Do not use Dify logos or unapproved Oracle artwork.
 
@@ -67,11 +70,11 @@ Exit criterion: the designated security/privacy reviewer and brand/IP reviewer h
 
 ### 5. Confirm Marketplace uniqueness and version availability
 
-Search both `https://marketplace.dify.ai` and `https://github.com/langgenius/dify-plugins` for the plugin identity, display name, and equivalent Oracle database tools.
+Search `https://marketplace.dify.ai`, `https://github.com/langgenius/dify-plugins`, and the current official-plugin repository for the plugin identity, display name, and equivalent Oracle database tools. An official `oracle_ai_db` plugin v0.0.8 was present in the local publication audit on July 3, 2026, so overlap and naming require explicit reviewer approval.
 
-Explain the unique value in the future PR: one read-only plugin combines relational SQL, Oracle Text, existing Oracle VECTOR rows, and weighted hybrid retrieval while keeping credentials in Dify provider authorization.
+Explain the unique value in the future PR without claiming category novelty: fixed human-configured DML, named scalar binds, a default-off provider gate, table/delete/row limits, pre-commit rollback, credential redaction, and combined Oracle Text, existing Oracle VECTOR rows, and weighted hybrid retrieval. Compare this guarded contract with existing Oracle plugins factually.
 
-Confirm that version `0.0.5` has never been published for this plugin identity. If it has, bump the manifest version and document a meaningful change; Marketplace updates cannot reuse an existing version.
+Confirm that version `0.0.6` has never been published for this plugin identity. If it has, bump the manifest version and document a meaningful change; Marketplace updates cannot reuse an existing version.
 
 Exit criterion: the PR draft records the uniqueness search date and confirms the version is new.
 
@@ -124,7 +127,7 @@ Exit criterion: one package maps unambiguously to one clean commit and one check
 
 ### 8. Validate the exact package in a clean Dify workspace
 
-Install the package produced in Step 7, configure Oracle authorization, and import/rebind the unified MVP workflow. Run the Knowledge path, all four tools, and the DML rejection proof. Capture non-secret screenshots or logs showing actual status, row counts, modes, vector dimensions, note/ticket IDs, and hybrid scores.
+Install the package produced in Step 7, configure Oracle authorization, and import/rebind the unified MVP workflow. Run the Knowledge path, all five tools, the read-tool DML rejection, disabled-write rejection, committed-write proof, and over-limit rollback proof. Capture non-secret screenshots or logs showing actual status, read and affected-row counts, commit state, modes, vector dimensions, note/ticket IDs, and hybrid scores.
 
 Re-export the workflow after installing the final package so its dependency identifier matches the submission package. Never edit the package or source after this run without rebuilding and repeating validation.
 
@@ -132,7 +135,7 @@ Exit criterion: the exact packaged artifact completes the rehearsed workflow and
 
 ### 9. Create the source release record
 
-Create a signed or annotated `v0.0.5` tag and a GitHub release for the frozen source commit. Attach the same `.difypkg`, its SHA-256, release notes, compatibility information, known limitations, and support link.
+Create a signed or annotated `v0.0.6` tag and a GitHub release for the frozen source commit. Attach the same `.difypkg`, its SHA-256, release notes, compatibility information, known limitations, and support link.
 
 This source release is not the Marketplace publication itself; it provides provenance and a recovery point.
 
@@ -155,7 +158,7 @@ Exit criterion: the fork contains one reviewable plugin directory and exactly on
 Open an English PR against `langgenius/dify-plugins:main`. Use the current PR template and include:
 
 - problem and unique value;
-- plugin type and four-tool scope;
+- plugin type and five-tool scope;
 - publisher identity and source repository;
 - tested Dify, daemon, Python, architecture, and Oracle versions;
 - privacy/data-flow summary;
@@ -174,7 +177,7 @@ After the PR merges, Dify publishes the plugin automatically; there is no separa
 
 Record the Marketplace URL, published version, publication date, owner, support channel, and smoke-test result. Monitor issues and Dify compatibility changes. For each later release, bump the manifest version, document breaking changes, repackage, and open a new Marketplace PR. Consider Dify's automated publish-PR workflow only after the manual process is stable.
 
-Exit criterion: the Marketplace listing is public, a clean one-click install works, all four tools pass smoke tests, and ongoing ownership is documented.
+Exit criterion: the Marketplace listing is public, a clean one-click install works, all five tools pass smoke tests, and ongoing ownership is documented.
 
 ## Owner and approval record
 

@@ -84,7 +84,3 @@ PROMPT f) Vector coverage after vector seeding. Expected: TOTAL_NOTES = 6, VECTO
 SELECT COUNT(*) AS total_notes,
        SUM(CASE WHEN embedding IS NOT NULL THEN 1 ELSE 0 END) AS vectorized_notes
 FROM demo_support_notes;
-
-PROMPT g) Agent write log before the write demo. Expected immediately after setup: 0 rows.
-SELECT COUNT(*) AS action_count
-FROM demo_agent_action_log;

@@ -2,9 +2,9 @@ identity:
   author: anishrajoracle
   name: oracle
   label:
-    en_US: Guarded Oracle Retrieval and Actions
+    en_US: Knowledge Retrieval for Oracle Database
   description:
-    en_US: Bounded SQL actions, Oracle Text, vector, and hybrid retrieval for Oracle Database.
+    en_US: Read-only SQL, Oracle Text, vector, and hybrid retrieval for Oracle Database.
   icon: icon.svg
   tags:
     - productivity
@@ -73,17 +73,8 @@ credentials_for_provider:
       en_US: Wallet Password
     help:
       en_US: Password for the configured wallet, when required.
-  enable_writes:
-    type: boolean
-    required: false
-    default: false
-    label:
-      en_US: Enable Write Actions
-    help:
-      en_US: Allow configured write tools to persist database changes. Leave disabled for retrieval-only authorizations.
 tools:
   - tools/read_only_sql.yaml
-  - tools/write_only_sql.yaml
   - tools/external_knowledge_search.yaml
   - tools/external_vector_search.yaml
   - tools/hybrid_knowledge_search.yaml

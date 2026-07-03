@@ -9,7 +9,6 @@ The dataset gives the Dify workflow visible Oracle results for:
 - `external_knowledge_search`
 - `external_vector_search`
 - `hybrid_knowledge_search`
-- `write_only_sql`
 - read-only safety rejection
 
 ## What It Creates
@@ -19,7 +18,6 @@ The seed script creates only demo tables prefixed with `DEMO_`:
 - `DEMO_CUSTOMERS`
 - `DEMO_SUPPORT_TICKETS`
 - `DEMO_SUPPORT_NOTES`
-- `DEMO_AGENT_ACTION_LOG`
 
 `DEMO_SUPPORT_NOTES` includes a `VECTOR(768, FLOAT32)` embedding column for
 the vector and hybrid-search tools. The dimension matches the default local
@@ -40,9 +38,7 @@ Oracle Text setup is best-effort. If the user lacks privileges or Oracle Text is
 
 ## How To Run
 
-Run the setup, vector seeder, and verification in that order. The final verification expects all six support notes to have embeddings, so do not run it immediately after the SQL setup.
-
-For an isolated local demo, the simplest option is to use one disposable schema owner for setup, seeding, and plugin authorization. That account has DDL and Oracle Text package privileges and must not be reused as a production authorization. For a least-privilege rehearsal, have an administrator/schema owner run setup, grant the plugin user only required table `SELECT`/DML privileges, and create private synonyms in the plugin schema for the unqualified `DEMO_*` names. Conditional cross-schema updates/deletes may require target-table `SELECT` in Oracle 23ai. The write tool intentionally rejects schema-qualified targets.
+Run the setup, vector seeder, and verification in that order as the same Oracle user configured in the Dify plugin connection. The final verification expects all six support notes to have embeddings, so do not run it immediately after the SQL setup.
 
 With SQLcl:
 
@@ -147,54 +143,6 @@ Expected result:
 
 - The plugin rejects `DELETE` / DML.
 - The demo has one closed ticket, `1004`, so it is clear what would have been deleted if the safety check did not exist.
-- The separate write action is disabled by default and cannot reuse this model-generated SQL.
-
-### 4. Configured Write Action
-
-Enable write actions in a dedicated provider authorization, then configure the tool before giving it to the agent:
-
-```text
-sql: INSERT INTO DEMO_AGENT_ACTION_LOG (ACTION_ID, TICKET_ID, ACTION_TYPE, DETAILS) VALUES (:action_id, :ticket_id, :action_type, :details)
-allowed_tables: DEMO_AGENT_ACTION_LOG
-allow_delete: false
-max_affected_rows: 1
-```
-
-Prompt:
-
-```text
-Record action 9001 for ticket 1001: FOLLOW_UP_REQUIRED, details "Verify identity sync and contact Acme Bank."
-```
-
-Add the exact payload contract to the agent/system instructions because Dify does not expose human-only form values such as the SQL template to the model:
-
-```text
-For the configured Oracle write action, pass bind_parameters as JSON with exactly:
-action_id (integer), ticket_id (integer), action_type (string), and details (string).
-Use it only when the user explicitly asks to record a support action.
-```
-
-Expected agent bind input:
-
-```json
-{"action_id":9001,"ticket_id":1001,"action_type":"FOLLOW_UP_REQUIRED","details":"Verify identity sync and contact Acme Bank."}
-```
-
-Expected result:
-
-- One committed `INSERT` receipt with `affected_rows = 1`; no database row is returned by the write tool.
-- A subsequent `read_only_sql` query can show action `9001`, making the persisted change visible.
-
-For the rollback proof, configure a disposable second instance of the tool with:
-
-```text
-sql: UPDATE DEMO_SUPPORT_TICKETS SET STATUS = :status WHERE CUSTOMER_ID = :customer_id
-allowed_tables: DEMO_SUPPORT_TICKETS
-allow_delete: false
-max_affected_rows: 1
-```
-
-Invoke it with `{"status":"REVIEW","customer_id":1}`. It matches multiple Acme Bank tickets, so the plugin must roll back and return an affected-row-limit error. Confirm with `read_only_sql` that their original statuses remain unchanged.
 
 ## Verification Queries
 
@@ -212,7 +160,6 @@ The verification file checks:
 - Open ticket counts are `P1 = 1`, `P2 = 3`, and `P3 = 1` after vector seeding.
 - Oracle Text search finds the VPN and credential-sync notes if the text index exists.
 - All 6 support notes have non-null vectors after vector seeding.
-- The write-action log is empty immediately after setup; the configured write demo adds action `9001`.
 
 ## Seed Vector And Hybrid Search Data
 

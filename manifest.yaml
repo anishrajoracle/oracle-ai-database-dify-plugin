@@ -1,11 +1,11 @@
-version: 0.0.6
+version: 0.0.5
 type: plugin
 author: anishrajoracle
 name: oracle_ai_database
 label:
-  en_US: Guarded Oracle Retrieval and Actions
+  en_US: Knowledge Retrieval for Oracle Database
 description:
-  en_US: Bounded SQL actions, Oracle Text, vector, and hybrid retrieval for Oracle Database.
+  en_US: Read-only SQL, Oracle Text, vector, and hybrid retrieval for Oracle Database.
 icon: icon.svg
 resource:
   memory: 268435456

@@ -7,12 +7,12 @@ Marketplace publication is not part of the completed MVP. Do not describe the pl
 ## Current handover state
 
 - Source repository: `https://github.com/anishrajoracle/oracle-ai-database-dify-plugin`
-- Current release line: `main`, version `0.0.5`
-- Latest frozen local package: v0.0.4 from source snapshot `b41e852154c585299f48eaef681e9296356224ea`
-- v0.0.4 provenance check: every one of the 26 files in its handover `.difypkg` matches that commit byte-for-byte
-- v0.0.4 file SHA-256: `b8d3f5a21dddd7ae4abca8eaa5cefefb56be51d166a14ffc5d4d8733ee22b873`
+- Current release-candidate line: `marketplace-v0.0.5-hardening`, version `0.0.5`
+- Latest local candidate package: v0.0.5, rebuilt from the immutable branch head recorded beside the artifact in the handover package record
+- v0.0.5 provenance requirement: all 27 packaged files must match that recorded source commit byte-for-byte
+- v0.0.5 package status: built as a local candidate after 41 tests and mechanical preflight; not installed, workflow-bound, live-tested, tagged, or Marketplace-published
+- Workflow package retained for the current demo: v0.0.4 from source snapshot `b41e852154c585299f48eaef681e9296356224ea`
 - v0.0.4 Dify content checksum: `0b093d4f477d980a4605c0479a879607c62586a9befd599ca496a16d741c9775`
-- v0.0.5 package status: not built; GitHub Plugin CI is enabled and passing on `main`
 - Plugin identity: `anishrajoracle/oracle_ai_database`
 - Distribution status: local package only; `verified: false`
 - Core tools: read-only SQL, Oracle Text search, Oracle VECTOR search, and hybrid search
@@ -31,7 +31,7 @@ Exit criterion: the publisher identity, primary owner, backup owner, and support
 
 ### 2. Freeze one release candidate
 
-Start from a clean branch based on the intended `main` commit. Resolve or exclude unrelated working-tree changes. Add the approved repository license, retain a monitored support link, and record the exact commit to be packaged.
+Start from the clean `marketplace-v0.0.5-hardening` candidate branch based on the intended `main` commit. Resolve or exclude unrelated working-tree changes. Add the approved repository license, retain a monitored support link, and record the exact commit to be packaged.
 
 Do not change source, manifest, dependencies, README, privacy text, or packaged assets after the release candidate is frozen without restarting the package-and-validation steps.
 

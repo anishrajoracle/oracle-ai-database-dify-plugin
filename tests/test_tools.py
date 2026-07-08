@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
+import pytest
+
 from oracle_ai_database.client import QueryResult
 from tools import (
     external_knowledge_search,
@@ -9,6 +11,7 @@ from tools import (
     hybrid_knowledge_search,
     read_only_sql,
 )
+from tools._shared import boolean_parameter
 
 
 class FakeClient:
@@ -52,6 +55,31 @@ def _tool_instance(cls):
     tool = cls()
     tool.runtime = SimpleNamespace(credentials={"user": "app", "password": "secret", "dsn": "db/pdb"})
     return tool
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        (True, True),
+        (False, False),
+        (1, True),
+        (0, False),
+        ("true", True),
+        ("false", False),
+        ("yes", True),
+        ("no", False),
+        ("on", True),
+        ("off", False),
+    ],
+)
+def test_boolean_parameter_accepts_native_and_serialized_values(value, expected):
+    assert boolean_parameter(value, default=True, name="flag") is expected
+
+
+def test_boolean_parameter_uses_default_and_rejects_ambiguous_values():
+    assert boolean_parameter(None, default=False, name="flag") is False
+    with pytest.raises(ValueError, match="flag must be a boolean"):
+        boolean_parameter("sometimes", default=True, name="flag")
 
 
 def test_read_only_sql_tool_returns_json_message(monkeypatch):
@@ -155,6 +183,31 @@ def test_external_knowledge_search_tool_uses_safe_sql_builder(monkeypatch):
     assert message["json"]["mode"] == "oracle_text"
 
 
+def test_external_knowledge_search_tool_treats_string_false_as_like_mode(monkeypatch):
+    client = FakeClient()
+    monkeypatch.setattr(external_knowledge_search, "client_from_runtime", lambda _tool: client)
+    tool = _tool_instance(external_knowledge_search.ExternalKnowledgeSearchTool)
+
+    message = list(
+        tool._invoke(
+            {
+                "query": "oracle ai",
+                "table_name": "DOCS",
+                "text_column": "BODY",
+                "id_column": "ID",
+                "use_oracle_text": "false",
+                "max_rows": 5,
+            }
+        )
+    )[0]
+
+    sql, binds, _ = client.read_calls[0]
+    assert "LOWER(BODY) LIKE :query" in sql
+    assert "CONTAINS" not in sql
+    assert binds == {"query": "%oracle ai%"}
+    assert message["json"]["mode"] == "like"
+
+
 def test_external_vector_search_tool_uses_vector_distance_sql(monkeypatch):
     client = FakeClient()
     monkeypatch.setattr(external_vector_search, "client_from_runtime", lambda _tool: client)
@@ -215,3 +268,31 @@ def test_hybrid_knowledge_search_tool_combines_text_and_vector(monkeypatch):
     assert max_rows == 5
     assert message["json"]["mode"] == "oracle_hybrid"
     assert message["json"]["text_mode"] == "oracle_text"
+
+
+def test_hybrid_knowledge_search_tool_treats_string_false_as_like_mode(monkeypatch):
+    client = FakeClient()
+    monkeypatch.setattr(hybrid_knowledge_search, "client_from_runtime", lambda _tool: client)
+    tool = _tool_instance(hybrid_knowledge_search.HybridKnowledgeSearchTool)
+
+    message = list(
+        tool._invoke(
+            {
+                "query": "oracle ai",
+                "query_vector": "[0.1, 0.2, 0.3]",
+                "table_name": "DOCS",
+                "text_column": "BODY",
+                "vector_column": "EMBEDDING",
+                "content_column": "BODY",
+                "id_column": "ID",
+                "use_oracle_text": "false",
+                "max_rows": 5,
+            }
+        )
+    )[0]
+
+    sql, query, *_ = client.hybrid_search_calls[0]
+    assert "LOWER(BODY) LIKE :query" in sql
+    assert "CONTAINS" not in sql
+    assert query == "%oracle ai%"
+    assert message["json"]["text_mode"] == "like"

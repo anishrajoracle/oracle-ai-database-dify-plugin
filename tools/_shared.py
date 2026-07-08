@@ -29,3 +29,19 @@ def require_text(value: Any, *, name: str) -> str:
     if not text:
         raise ValueError(f"{name} is required.")
     return text
+
+
+def boolean_parameter(value: Any, *, default: bool, name: str) -> bool:
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, int) and value in (0, 1):
+        return bool(value)
+    if isinstance(value, str):
+        normalized = value.strip().casefold()
+        if normalized in {"1", "true", "yes", "on"}:
+            return True
+        if normalized in {"0", "false", "no", "off"}:
+            return False
+    raise ValueError(f"{name} must be a boolean.")

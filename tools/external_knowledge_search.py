@@ -14,7 +14,7 @@ from oracle_ai_database.sql_safety import (
     sanitize_oracle_text_query,
     validate_identifier,
 )
-from tools._shared import client_from_runtime, error_payload, require_text
+from tools._shared import boolean_parameter, client_from_runtime, error_payload, require_text
 
 
 def _like_query(query: str) -> str:
@@ -30,7 +30,11 @@ class ExternalKnowledgeSearchTool(Tool):
             text_column = validate_identifier(str(tool_parameters.get("text_column") or "text"), label="text column")
             id_column = validate_identifier(str(tool_parameters.get("id_column") or "id"), label="ID column")
             metadata_columns = parse_column_list(tool_parameters.get("metadata_columns"))
-            use_oracle_text = bool(tool_parameters.get("use_oracle_text", True))
+            use_oracle_text = boolean_parameter(
+                tool_parameters.get("use_oracle_text"),
+                default=True,
+                name="use_oracle_text",
+            )
             max_rows = bounded_int(
                 tool_parameters.get("max_rows"),
                 default=10,

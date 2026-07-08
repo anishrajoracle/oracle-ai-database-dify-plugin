@@ -12,6 +12,7 @@ import oracledb
 EMBEDDING_DIMENSION = 768
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434").rstrip("/")
 OLLAMA_EMBED_MODEL = os.getenv("OLLAMA_EMBED_MODEL", "nomic-embed-text")
+ORACLE_TEXT_INDEX_NAME = "DEMO_SUPPORT_NOTES_CTX_IDX"
 
 ADDITIONAL_TICKETS = [
     {
@@ -200,10 +201,17 @@ def update_embeddings(cursor: Any) -> int:
     return len(notes)
 
 
+def oracle_text_index_exists(cursor: Any) -> bool:
+    cursor.execute(
+        "SELECT COUNT(*) FROM user_indexes WHERE index_name = :index_name",
+        {"index_name": ORACLE_TEXT_INDEX_NAME},
+    )
+    return bool(cursor.fetchone()[0])
+
+
 def sync_oracle_text(cursor: Any) -> None:
-    cursor.execute("SELECT COUNT(*) FROM user_indexes WHERE index_name = 'DEMO_SUPPORT_NOTES_CTX_IDX'")
-    if cursor.fetchone()[0]:
-        cursor.execute("BEGIN CTX_DDL.SYNC_INDEX('DEMO_SUPPORT_NOTES_CTX_IDX'); END;")
+    if oracle_text_index_exists(cursor):
+        cursor.execute(f"BEGIN CTX_DDL.SYNC_INDEX('{ORACLE_TEXT_INDEX_NAME}'); END;")
 
 
 def verify(cursor: Any) -> None:
@@ -231,20 +239,35 @@ def verify(cursor: Any) -> None:
     if not matches:
         raise RuntimeError("Vector verification returned no support notes")
 
-    cursor.execute(
-        """
-        SELECT COUNT(*)
-        FROM DEMO_SUPPORT_NOTES
-        WHERE CONTAINS(body, 'VPN ACCUM password ACCUM synchronization', 1) > 0
-        """
-    )
+    if oracle_text_index_exists(cursor):
+        search_mode = "oracle_text"
+        cursor.execute(
+            """
+            SELECT COUNT(*)
+            FROM DEMO_SUPPORT_NOTES
+            WHERE CONTAINS(body, 'VPN ACCUM password ACCUM synchronization', 1) > 0
+            """
+        )
+    else:
+        search_mode = "like"
+        cursor.execute(
+            """
+            SELECT COUNT(*)
+            FROM DEMO_SUPPORT_NOTES
+            WHERE UPPER(body) LIKE :vpn
+              AND UPPER(body) LIKE :password
+              AND UPPER(body) LIKE :sync
+            """,
+            {"vpn": "%VPN%", "password": "%PASSWORD%", "sync": "%SYNC%"},
+        )
     text_matches = cursor.fetchone()[0]
     if not text_matches:
-        raise RuntimeError("Oracle Text verification returned no support notes")
+        raise RuntimeError(f"{search_mode} verification returned no support notes")
 
     print(f"support_notes={total}")
     print(f"vectorized_notes={vectorized}")
-    print(f"oracle_text_matches={text_matches}")
+    print(f"text_search_mode={search_mode}")
+    print(f"text_matches={text_matches}")
     print("top_vector_matches=" + ",".join(f"{row[0]}:{float(row[2]):.4f}" for row in matches))
 
 

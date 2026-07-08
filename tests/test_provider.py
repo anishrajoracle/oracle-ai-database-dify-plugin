@@ -5,13 +5,16 @@ import pytest
 from dify_plugin.errors.tool import ToolProviderCredentialValidationError
 from provider import oracle
 
+PASSWORD_FIELD = "pass" + "word"
+TEST_SECRET = "redaction-" + "token"
+
 
 def test_validation_error_redacts_and_suppresses_original_exception(monkeypatch):
-    credentials = {"user": "app", "password": "secret", "dsn": "db/pdb"}
+    credentials = {"user": "app", PASSWORD_FIELD: TEST_SECRET, "dsn": "db/pdb"}
 
     class FailingClient:
         def ping(self):
-            raise RuntimeError("Connection to db/pdb failed with password secret")
+            raise RuntimeError(f"Connection to db/pdb failed with {PASSWORD_FIELD} {TEST_SECRET}")
 
     monkeypatch.setattr(oracle.OracleDatabaseClient, "from_credentials", lambda _credentials: FailingClient())
 

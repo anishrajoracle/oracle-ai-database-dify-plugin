@@ -14,7 +14,7 @@ BEGIN
 EXCEPTION
   WHEN OTHERS THEN
     IF SQLCODE != -1418 THEN
-      DBMS_OUTPUT.PUT_LINE('Skipping index drop: ' || SQLERRM);
+      DBMS_OUTPUT.PUT_LINE('Skipping index drop; continuing demo setup.');
     END IF;
 END;
 /
@@ -280,8 +280,7 @@ EXCEPTION
   WHEN OTHERS THEN
     DBMS_OUTPUT.PUT_LINE(
       'Oracle Text lexer preference was not created. '
-      || 'The demo can still use read_only_sql and LIKE search. '
-      || SQLERRM
+      || 'The demo can still use read_only_sql and LIKE search.'
     );
 END;
 /
@@ -298,8 +297,7 @@ EXCEPTION
   WHEN OTHERS THEN
     DBMS_OUTPUT.PUT_LINE(
       'Oracle Text index was not created. '
-      || 'The demo can still use read_only_sql and LIKE search. '
-      || SQLERRM
+      || 'The demo can still use read_only_sql and LIKE search.'
     );
 END;
 /

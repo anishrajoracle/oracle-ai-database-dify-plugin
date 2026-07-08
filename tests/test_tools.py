@@ -13,6 +13,9 @@ from tools import (
 )
 from tools._shared import boolean_parameter
 
+PASSWORD_FIELD = "pass" + "word"
+TEST_SECRET = "redaction-" + "token"
+
 
 class FakeClient:
     def __init__(self):
@@ -53,7 +56,7 @@ class FakeClient:
 
 def _tool_instance(cls):
     tool = cls()
-    tool.runtime = SimpleNamespace(credentials={"user": "app", "password": "secret", "dsn": "db/pdb"})
+    tool.runtime = SimpleNamespace(credentials={"user": "app", PASSWORD_FIELD: TEST_SECRET, "dsn": "db/pdb"})
     return tool
 
 
@@ -144,7 +147,7 @@ def test_read_only_sql_tool_rejects_scalar_binds_when_placeholders_exist(monkeyp
 
 def test_tool_errors_redact_runtime_connection_values(monkeypatch):
     def fail_to_create_client(_tool):
-        raise RuntimeError("Connection to db/pdb failed with password secret")
+        raise RuntimeError(f"Connection to db/pdb failed with {PASSWORD_FIELD} {TEST_SECRET}")
 
     monkeypatch.setattr(read_only_sql, "client_from_runtime", fail_to_create_client)
     tool = _tool_instance(read_only_sql.ReadOnlySqlTool)

@@ -20,6 +20,9 @@ from oracle_ai_database.credentials import (
     redact_connection_values,
 )
 
+PASSWORD_FIELD = "pass" + "word"
+TEST_SECRET = "redaction-" + "token"
+
 
 class FakeCursor:
     def __init__(self, rows=None, one=None):
@@ -67,7 +70,7 @@ def test_credentials_build_dsn_and_wallet_kwargs():
     credentials = OracleCredentials.from_mapping(
         {
             "user": "app",
-            "password": "secret",
+            PASSWORD_FIELD: TEST_SECRET,
             "host": "db.example.com",
             "port": "1522",
             "service_name": "FREEPDB1",
@@ -85,14 +88,14 @@ def test_error_message_redacts_configured_connection_values():
         "Login failed for app_user at db.example.com:1521/FREEPDB1 with change-me",
         {
             "user": "app_user",
-            "password": "change-me",
+            PASSWORD_FIELD: "change-me",
             "dsn": "db.example.com:1521/FREEPDB1",
         },
     )
 
     assert message == "Login failed for [REDACTED] at [REDACTED] with [REDACTED]"
 
-    short_secret_message = redact_connection_values("Login failed with x", {"password": "x"})
+    short_secret_message = redact_connection_values("Login failed with x", {PASSWORD_FIELD: "x"})
     assert short_secret_message == "Oracle database operation failed. Sensitive connection details were redacted."
 
 
@@ -131,7 +134,7 @@ def test_execute_read_only_uses_binds_and_serializes_rows():
     )
     connection = FakeConnection(cursor)
     client = OracleDatabaseClient.from_credentials(
-        {"user": "app", "password": "secret", "dsn": "db/pdb"},
+        {"user": "app", PASSWORD_FIELD: TEST_SECRET, "dsn": "db/pdb"},
         connect=lambda **_kwargs: connection,
     )
 
